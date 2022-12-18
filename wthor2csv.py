@@ -86,32 +86,15 @@ class Wthor:
 
     def to_csv(self, csv_file='output.csv'):
         header = [
-            'Match Year',
-            'Tournament Name',
-            'Black Player Name',
-            'White Player Name',
-            'Board Size',
-            'Black Score',
-            'Black Theoretical Score',
-            'Depth',
-            'Record',
+            'Match Year', 'Tournament Name', 'Black Player Name',
+            'White Player Name', 'Board Size', 'Black Score',
+            'Black Theoretical Score', 'Depth', 'Record',
         ]
         with open(csv_file, 'w', newline='') as f:
             writer = csv.writer(f)
             writer.writerow(header)
             for game in self.games:
-                line = [
-                    game['match_year'],
-                    game['tournament'],
-                    game['black'],
-                    game['white'],
-                    game['board_size'],
-                    game['black_score'],
-                    game['theoretical'],
-                    game['depth'],
-                    game['record'],
-                ]
-                writer.writerow(line)
+                writer.writerow(game.values())
 
 
 if __name__ == '__main__':
