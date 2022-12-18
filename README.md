@@ -1,5 +1,5 @@
 # wthor2csv
-WTHORのリバーシ棋譜をCSVファイルに変換する
+WTHORのリバーシ棋譜データベースをCSVファイルに変換する
 
 ## 動作環境
 - [Python 3.7.6](https://www.python.org/downloads/release/python-376/)以上<br>
