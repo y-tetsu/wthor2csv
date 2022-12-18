@@ -12,29 +12,18 @@ MAX_MOVES = 60
 
 class Wthor:
     def __init__(self, jou='WTHOR.JOU', trn='WTHOR.TRN', wtb='WTH_2022.wtb'):
-        self.players = self.get_players(jou)
-        self.tournaments = self.get_tournaments(trn)
+        self.players = self.get_records(jou, JOU_BYTES)
+        self.tournaments = self.get_records(trn, TRN_BYTES)
         self.games = self.get_games(wtb)
 
-    def get_players(self, jou):
+    def get_records(self, filename, record_bytes):
         ret = []
-        header = self.decode_header(jou)
-        with open(jou, 'rb') as f:
-            f.read(HEADER_BYTES)
+        header = self.decode_header(filename)
+        with open(filename, 'rb') as f:
+            f.read(HEADER_BYTES)  # discard
             for _ in range(header['records']):
-                player = f.read(JOU_BYTES).decode(FORMAT).replace('\x00', '')
-                ret.append(player)
-        return ret
-
-    def get_tournaments(self, trn):
-        ret = []
-        header = self.decode_header(trn)
-        with open(trn, 'rb') as f:
-            f.read(HEADER_BYTES)
-            for _ in range(header['records']):
-                tournament = f.read(TRN_BYTES).decode(FORMAT)
-                tournament = tournament.replace('\x00', '')
-                ret.append(tournament)
+                record = f.read(record_bytes).decode(FORMAT)
+                ret.append(record.replace('\x00', ''))
         return ret
 
     def get_games(self, wtb):
