@@ -16,7 +16,7 @@ class Wthor:
     def _get_records(self, filename, rbytes):
         ret = []
         with open(filename, 'rb') as f:
-            f.read(RECORD_BYTES['header'])  # discard
+            f.read(RECORD_BYTES['header'])  # discard header
             for _ in range(self._decode_header(filename)['records']):
                 ret.append(f.read(rbytes).decode(FORMAT).replace('\x00', ''))
         return ret
@@ -25,32 +25,27 @@ class Wthor:
         ret = []
         header = self._decode_header(wtb)
         with open(wtb, 'rb') as f:
-            f.read(RECORD_BYTES['header'])  # discard
+            f.read(RECORD_BYTES['header'])  # discard header
             for _ in range(header['game_count']):
-                tournament = self.tournaments[self._byte2int(f.read(2))]
-                black = self.players[self._byte2int(f.read(2))]
-                white = self.players[self._byte2int(f.read(2))]
-                black_score = self._byte2int(f.read(1))
-                theoretical = self._byte2int(f.read(1))
-                moves = []
-                for _ in range(MAX_MOVES):
-                    move = str(self._byte2int(f.read(1)))
-                    if len(move) != 2:
-                        continue
-                    row, col = chr(ord('a') + int(move[1]) - 1), move[0]
-                    moves.append(row + col)
-                record = ''.join(moves)
                 ret.append({
                     'match_year': header['match_year'],
-                    'tournament': tournament,
-                    'black': black,
-                    'white': white,
+                    'tournament': self.tournaments[self._byte2int(f.read(2))],
+                    'black': self.players[self._byte2int(f.read(2))],
+                    'white': self.players[self._byte2int(f.read(2))],
                     'board_size': header['board_size'],
-                    'black_score': black_score,
-                    'theoretical': theoretical,
+                    'black_score': self._byte2int(f.read(1)),
+                    'theoretical': self._byte2int(f.read(1)),
                     'depth': header['depth'],
-                    'record': record,
+                    'record': self._get_record(f),
                 })
+        return ret
+
+    def _get_record(self, f):
+        ret = ""
+        for _ in range(MAX_MOVES):
+            move = str(self._byte2int(f.read(1)))
+            if len(move) == 2:
+                ret += chr(ord('a') + int(move[1]) - 1) + move[0]
         return ret
 
     def _decode_header(self, dbname):
