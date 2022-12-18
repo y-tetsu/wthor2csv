@@ -45,16 +45,15 @@ class Wthor:
                     move = str(self._byte_to_int(f.read(1)))
                     if len(move) != 2:
                         continue
-                    row = chr(ord('a') + int(move[1]) - 1)
-                    col = move[0]
+                    row, col = chr(ord('a') + int(move[1]) - 1), move[0]
                     moves.append(row + col)
                 record = ''.join(moves)
                 ret.append({
-                    'board_size': board_size,
                     'match_year': match_year,
                     'tournament': tournament,
                     'black': black,
                     'white': white,
+                    'board_size': board_size,
                     'black_score': black_score,
                     'theoretical': theoretical,
                     'depth': depth,
