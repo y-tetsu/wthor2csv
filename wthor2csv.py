@@ -85,13 +85,12 @@ class Wthor:
         }
 
     def _get_created_date(self, f):
-        year = ""
+        y = ""
         for _ in range(2):
-            year += str(self._byte_to_int(f.read(1)))
-        month = str(self._byte_to_int(f.read(1)))
-        day = str(self._byte_to_int(f.read(1)))
-        date = year + '-' + month + '-' + day
-        return datetime.datetime.strptime(date, '%Y-%m-%d')
+            y += str(self._byte_to_int(f.read(1)))
+        m = str(self._byte_to_int(f.read(1)))
+        d = str(self._byte_to_int(f.read(1)))
+        return datetime.datetime.strptime('-'.join([y, m, d]), '%Y-%m-%d')
 
     def _byte_to_int(self, byte, byteorder='little'):
         return int.from_bytes(byte, byteorder=byteorder)
