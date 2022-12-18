@@ -63,22 +63,15 @@ class Wthor:
 
     def decode_header(self, dbname):
         with open(dbname, 'rb') as f:
-            created_date = self._get_created_date(f)
-            game_count = self._byte_to_int(f.read(4))
-            records = self._byte_to_int(f.read(2))
-            match_year = self._byte_to_int(f.read(2))
-            board_size = self._byte_to_int(f.read(1))
-            match_type = self._byte_to_int(f.read(1))
-            depth = self._byte_to_int(f.read(1))
-        return {
-            'created_date': created_date,
-            'game_count': game_count,
-            'records': records,
-            'match_year': match_year,
-            'board_size': board_size,
-            'match_type': match_type,
-            'depth': depth,
-        }
+            return {
+                'created_date': self._get_created_date(f),
+                'game_count': self._byte_to_int(f.read(4)),
+                'records': self._byte_to_int(f.read(2)),
+                'match_year': self._byte_to_int(f.read(2)),
+                'board_size': self._byte_to_int(f.read(1)),
+                'match_type': self._byte_to_int(f.read(1)),
+                'depth': self._byte_to_int(f.read(1)),
+            }
 
     def _get_created_date(self, f):
         y = ""
