@@ -3,85 +3,75 @@ import csv
 
 
 FORMAT = 'iso-8859-2'
-HEADER_BYTES = 16
-JOU_BYTES = 20
-TRN_BYTES = 26
-WTB_BYTES = 68
+RECORD_BYTES = {'header': 16, 'jou': 20, 'trn': 26}
 MAX_MOVES = 60
 
 
 class Wthor:
     def __init__(self, jou='WTHOR.JOU', trn='WTHOR.TRN', wtb='WTH_2022.wtb'):
-        self.players = self.get_records(jou, JOU_BYTES)
-        self.tournaments = self.get_records(trn, TRN_BYTES)
-        self.games = self.get_games(wtb)
+        self.players = self._get_records(jou, RECORD_BYTES['jou'])
+        self.tournaments = self._get_records(trn, RECORD_BYTES['trn'])
+        self.games = self._get_games(wtb)
 
-    def get_records(self, filename, record_bytes):
+    def _get_records(self, filename, rbytes):
         ret = []
-        header = self.decode_header(filename)
         with open(filename, 'rb') as f:
-            f.read(HEADER_BYTES)  # discard
-            for _ in range(header['records']):
-                record = f.read(record_bytes).decode(FORMAT)
-                ret.append(record.replace('\x00', ''))
+            f.read(RECORD_BYTES['header'])  # discard
+            for _ in range(self._decode_header(filename)['records']):
+                ret.append(f.read(rbytes).decode(FORMAT).replace('\x00', ''))
         return ret
 
-    def get_games(self, wtb):
+    def _get_games(self, wtb):
         ret = []
-        header = self.decode_header(wtb)
-        board_size = header['board_size']
-        match_year = header['match_year']
-        depth = header['depth']
+        header = self._decode_header(wtb)
         with open(wtb, 'rb') as f:
-            f.read(HEADER_BYTES)  # discard
+            f.read(RECORD_BYTES['header'])  # discard
             for _ in range(header['game_count']):
-                tournament = self.tournaments[self._byte_to_int(f.read(2))]
-                black = self.players[self._byte_to_int(f.read(2))]
-                white = self.players[self._byte_to_int(f.read(2))]
-                black_score = self._byte_to_int(f.read(1))
-                theoretical = self._byte_to_int(f.read(1))
+                tournament = self.tournaments[self._byte2int(f.read(2))]
+                black = self.players[self._byte2int(f.read(2))]
+                white = self.players[self._byte2int(f.read(2))]
+                black_score = self._byte2int(f.read(1))
+                theoretical = self._byte2int(f.read(1))
                 moves = []
                 for _ in range(MAX_MOVES):
-                    move = str(self._byte_to_int(f.read(1)))
+                    move = str(self._byte2int(f.read(1)))
                     if len(move) != 2:
                         continue
                     row, col = chr(ord('a') + int(move[1]) - 1), move[0]
                     moves.append(row + col)
                 record = ''.join(moves)
                 ret.append({
-                    'match_year': match_year,
+                    'match_year': header['match_year'],
                     'tournament': tournament,
                     'black': black,
                     'white': white,
-                    'board_size': board_size,
+                    'board_size': header['board_size'],
                     'black_score': black_score,
                     'theoretical': theoretical,
-                    'depth': depth,
+                    'depth': header['depth'],
                     'record': record,
                 })
         return ret
 
-    def decode_header(self, dbname):
+    def _decode_header(self, dbname):
         with open(dbname, 'rb') as f:
             return {
                 'created_date': self._get_created_date(f),
-                'game_count': self._byte_to_int(f.read(4)),
-                'records': self._byte_to_int(f.read(2)),
-                'match_year': self._byte_to_int(f.read(2)),
-                'board_size': self._byte_to_int(f.read(1)),
-                'match_type': self._byte_to_int(f.read(1)),
-                'depth': self._byte_to_int(f.read(1)),
+                'game_count': self._byte2int(f.read(4)),
+                'records': self._byte2int(f.read(2)),
+                'match_year': self._byte2int(f.read(2)),
+                'board_size': self._byte2int(f.read(1)),
+                'match_type': self._byte2int(f.read(1)),
+                'depth': self._byte2int(f.read(1)),
             }
 
     def _get_created_date(self, f):
-        y = ""
-        for _ in range(2):
-            y += str(self._byte_to_int(f.read(1)))
-        m = str(self._byte_to_int(f.read(1)))
-        d = str(self._byte_to_int(f.read(1)))
+        y = str(self._byte2int(f.read(1))) + str(self._byte2int(f.read(1)))
+        m = str(self._byte2int(f.read(1)))
+        d = str(self._byte2int(f.read(1)))
         return datetime.datetime.strptime('-'.join([y, m, d]), '%Y-%m-%d')
 
-    def _byte_to_int(self, byte, byteorder='little'):
+    def _byte2int(self, byte, byteorder='little'):
         return int.from_bytes(byte, byteorder=byteorder)
 
     def to_csv(self, csv_file='output.csv'):
