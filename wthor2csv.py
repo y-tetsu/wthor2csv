@@ -33,16 +33,13 @@ class Wthor:
         match_year = header['match_year']
         depth = header['depth']
         with open(wtb, 'rb') as f:
-            f.read(HEADER_BYTES)
+            f.read(HEADER_BYTES)  # discard
             for _ in range(header['game_count']):
-                tournament_no = self._byte_to_int(f.read(2))
-                black_no = self._byte_to_int(f.read(2))
-                white_no = self._byte_to_int(f.read(2))
+                tournament = self.tournaments[self._byte_to_int(f.read(2))]
+                black = self.players[self._byte_to_int(f.read(2))]
+                white = self.players[self._byte_to_int(f.read(2))]
                 black_score = self._byte_to_int(f.read(1))
                 theoretical = self._byte_to_int(f.read(1))
-                tournament = self.tournaments[tournament_no]
-                black = self.players[black_no]
-                white = self.players[white_no]
                 moves = []
                 for _ in range(MAX_MOVES):
                     move = str(self._byte_to_int(f.read(1)))
